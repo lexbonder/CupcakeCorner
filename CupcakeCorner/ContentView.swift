@@ -7,49 +7,36 @@
 
 import SwiftUI
 
-struct Response: Codable {
-    let results: [Result]
-}
-
-struct Result: Codable {
-    let trackId: Int
-    let trackName: String
-    let collectionName: String
-}
-
 struct ContentView: View {
-    @State private var results = [Result]()
     
     var body: some View {
-        List(results, id: \.trackId) { item in
-            VStack(alignment: .leading) {
-                Text(item.trackName)
-                    .font(.headline)
-                Text(item.collectionName)
-            }
-        }
-        .task {
-            await loadData()
-        }
-    }
-    
-    func loadData() async {
-        // build url
-        guard let url = URL(string: "https://itunes.apple.com/search?term=bug+hunter&entity=song") else {
-            print("Invalid URL")
-            return
-        }
+// add scale: for swift to create the 1x, 2x, and 3x versions.
+// This image was built to be 1200 pixels. If I label it as 3x, swift knows that 1x is 400 pixels, and displays that.
+        // AsyncImage(url: URL(string: "https://hws.dev/img/logo.png"), scale: 3)
         
-        do {
-            // get data from url
-            let (data, _) = try await URLSession.shared.data(from: url)
-            // decode data
-            if let decoded = try? JSONDecoder().decode(Response.self, from: data) {
-                results = decoded.results
+// Add closure to specify conditions for the returned image. then image responds to frame modifier
+        // AsyncImage(url: URL(string: "https://hws.dev/img/logo.png")) { image in
+        //     image
+        //         .resizable()
+        //         .scaledToFit()
+        //     } placeholder: {
+        //         ProgressView()
+        //     }
+        //     .frame(width: 200, height: 200) // frame works only on the pre-loaded view
+        
+// "phase in" is different from "image in" - phase gives better error handling
+        AsyncImage(url: URL(string: "https://hws.dev/img/bad.png")) { phase in
+            if let image = phase.image { // successful download
+                image
+                    .resizable()
+                    .scaledToFit()
+            } else if phase.error != nil { // failed download
+                Text("There was an error loading the image.")
+            } else { // until success or fail
+                ProgressView()
             }
-        } catch {
-            print("Failed to retrieve data")
         }
+        .frame(width: 200, height: 200)
     }
 }
 
